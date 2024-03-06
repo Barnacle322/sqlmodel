@@ -100,6 +100,7 @@ class FieldInfo(PydanticFieldInfo):
         primary_key = kwargs.pop("primary_key", False)
         nullable = kwargs.pop("nullable", Undefined)
         foreign_key = kwargs.pop("foreign_key", Undefined)
+        foreign_key_kwargs = kwargs.pop("foreign_key_kwargs", Undefined)
         unique = kwargs.pop("unique", False)
         index = kwargs.pop("index", Undefined)
         sa_type = kwargs.pop("sa_type", Undefined)
@@ -147,6 +148,7 @@ class FieldInfo(PydanticFieldInfo):
         self.primary_key = primary_key
         self.nullable = nullable
         self.foreign_key = foreign_key
+        self.foreign_key_kwargs = foreign_key_kwargs
         self.unique = unique
         self.index = index
         self.sa_type = sa_type
@@ -216,6 +218,7 @@ def Field(
     repr: bool = True,
     primary_key: Union[bool, UndefinedType] = Undefined,
     foreign_key: Any = Undefined,
+    foreign_key_kwargs: Union[Mapping[str, Any], UndefinedType] = Undefined,
     unique: Union[bool, UndefinedType] = Undefined,
     nullable: Union[bool, UndefinedType] = Undefined,
     index: Union[bool, UndefinedType] = Undefined,
@@ -223,8 +226,7 @@ def Field(
     sa_column_args: Union[Sequence[Any], UndefinedType] = Undefined,
     sa_column_kwargs: Union[Mapping[str, Any], UndefinedType] = Undefined,
     schema_extra: Optional[Dict[str, Any]] = None,
-) -> Any:
-    ...
+) -> Any: ...
 
 
 @overload
@@ -260,8 +262,7 @@ def Field(
     repr: bool = True,
     sa_column: Union[Column, UndefinedType] = Undefined,  # type: ignore
     schema_extra: Optional[Dict[str, Any]] = None,
-) -> Any:
-    ...
+) -> Any: ...
 
 
 def Field(
@@ -296,6 +297,7 @@ def Field(
     repr: bool = True,
     primary_key: Union[bool, UndefinedType] = Undefined,
     foreign_key: Any = Undefined,
+    foreign_key_kwargs: Union[Mapping[str, Any], UndefinedType] = Undefined,
     unique: Union[bool, UndefinedType] = Undefined,
     nullable: Union[bool, UndefinedType] = Undefined,
     index: Union[bool, UndefinedType] = Undefined,
@@ -333,6 +335,7 @@ def Field(
         repr=repr,
         primary_key=primary_key,
         foreign_key=foreign_key,
+        foreign_key_kwargs=foreign_key_kwargs,
         unique=unique,
         nullable=nullable,
         index=index,
@@ -353,8 +356,7 @@ def Relationship(
     link_model: Optional[Any] = None,
     sa_relationship_args: Optional[Sequence[Any]] = None,
     sa_relationship_kwargs: Optional[Mapping[str, Any]] = None,
-) -> Any:
-    ...
+) -> Any: ...
 
 
 @overload
@@ -363,8 +365,7 @@ def Relationship(
     back_populates: Optional[str] = None,
     link_model: Optional[Any] = None,
     sa_relationship: Optional[RelationshipProperty[Any]] = None,
-) -> Any:
-    ...
+) -> Any: ...
 
 
 def Relationship(
@@ -636,9 +637,14 @@ def get_column_from_field(field: Any) -> Column:  # type: ignore
     unique = getattr(field_info, "unique", Undefined)
     if unique is Undefined:
         unique = False
+    foreign_key_kwargs = getattr(field_info, "foreign_key_kwargs", Undefined)
     if foreign_key:
+        print(foreign_key_kwargs)
         assert isinstance(foreign_key, str)
-        args.append(ForeignKey(foreign_key))
+        if foreign_key_kwargs is not Undefined:
+            args.append(ForeignKey(foreign_key, **foreign_key_kwargs))
+        else:
+            args.append(ForeignKey(foreign_key))
     kwargs = {
         "primary_key": primary_key,
         "nullable": nullable,
