@@ -639,7 +639,6 @@ def get_column_from_field(field: Any) -> Column:  # type: ignore
         unique = False
     foreign_key_kwargs = getattr(field_info, "foreign_key_kwargs", Undefined)
     if foreign_key:
-        print(foreign_key_kwargs)
         assert isinstance(foreign_key, str)
         if foreign_key_kwargs is not Undefined:
             args.append(ForeignKey(foreign_key, **foreign_key_kwargs))
